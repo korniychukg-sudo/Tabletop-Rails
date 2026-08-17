@@ -464,3 +464,69 @@ struct TrackArtist {
         ctx.stroke(Path(roundedRect: rect, cornerRadius: 4), with: .color(RailTheme.brassLight.opacity(pulse)), style: StrokeStyle(lineWidth: 2.2, dash: [5, 4]))
     }
 }
+
+extension TrackArtist {
+    func drawAmbient(_ ctx: inout GraphicsContext) {
+        let matW = CGFloat(layout.cols) * cellSize
+        let matH = CGFloat(layout.rows) * cellSize
+        if night < 0.5 {
+            for bird in 0..<2 {
+                let cycle: Double = bird == 0 ? 26 : 37
+                let offset: Double = bird == 0 ? 0 : 13
+                let t = (phase + offset).truncatingRemainder(dividingBy: cycle)
+                let flightTime: Double = 7
+                guard t < flightTime else { continue }
+                let progress = CGFloat(t / flightTime)
+                let dir: CGFloat = bird == 0 ? 1 : -1
+                let x = dir > 0 ? progress * (matW + cellSize * 2) - cellSize : matW + cellSize - progress * (matW + cellSize * 2)
+                let baseYPos = matH * (bird == 0 ? 0.24 : 0.55)
+                let y = baseYPos + sin(progress * .pi * 3) * cellSize * 0.4
+                let flap = sin(phase * 9 + Double(bird) * 2)
+                let wing = cellSize * 0.16
+                var body = Path()
+                body.move(to: CGPoint(x: x - wing, y: y - CGFloat(flap) * wing * 0.5))
+                body.addQuadCurve(to: CGPoint(x: x, y: y), control: CGPoint(x: x - wing * 0.4, y: y + wing * 0.18))
+                body.addQuadCurve(to: CGPoint(x: x + wing, y: y - CGFloat(flap) * wing * 0.5), control: CGPoint(x: x + wing * 0.4, y: y + wing * 0.18))
+                ctx.stroke(body, with: .color(RailTheme.ink.opacity(0.62)), style: StrokeStyle(lineWidth: max(1.6, cellSize * 0.028), lineCap: .round))
+                var shadow = Path()
+                shadow.addEllipse(in: CGRect(x: x - wing * 0.5, y: y + cellSize * 1.6, width: wing, height: wing * 0.22))
+                ctx.fill(shadow, with: .color(Color.black.opacity(0.05)))
+            }
+            var flowerCells: [GridPoint] = []
+            for (cell, item) in layout.scenery where item.kind == .flowerBed || item.kind == .bush {
+                flowerCells.append(cell)
+            }
+            for (i, cell) in flowerCells.sorted(by: { ($0.y, $0.x) < ($1.y, $1.x) }).prefix(3).enumerated() {
+                let rect = cellRect(cell)
+                let fx = rect.midX + CGFloat(sin(phase * 0.9 + Double(i) * 2.1)) * rect.width * 0.42
+                let fy = rect.midY - rect.height * 0.28 + CGFloat(sin(phase * 1.7 + Double(i))) * rect.height * 0.2
+                let flap = abs(sin(phase * 7 + Double(i) * 1.3))
+                let wingW = rect.width * 0.045 + rect.width * 0.03 * CGFloat(flap)
+                let tint = i % 2 == 0 ? Color(red: 0.93, green: 0.78, blue: 0.34) : Color(red: 0.88, green: 0.60, blue: 0.72)
+                var left = Path()
+                left.addEllipse(in: CGRect(x: fx - wingW, y: fy - rect.height * 0.03, width: wingW, height: rect.height * 0.06))
+                var right = Path()
+                right.addEllipse(in: CGRect(x: fx, y: fy - rect.height * 0.03, width: wingW, height: rect.height * 0.06))
+                ctx.fill(left, with: .color(tint.opacity(0.9)))
+                ctx.fill(right, with: .color(tint.opacity(0.75)))
+                ctx.fill(Path(ellipseIn: CGRect(x: fx - 1, y: fy - 2, width: 2, height: 4)), with: .color(RailTheme.ink.opacity(0.7)))
+            }
+        }
+        if night > 0.2 {
+            for (cell, item) in layout.scenery where item.kind == .house || item.kind == .barn {
+                let rect = cellRect(cell)
+                let chimneyX = rect.midX + rect.width * 0.23
+                let chimneyTop = rect.maxY - rect.height * 0.72
+                var rng = SeededRandom(seed: UInt64(cell.x * 31 + cell.y * 57 + 5))
+                for p in 0..<3 {
+                    let cycle = 5.0 + Double(rng.next()) * 2
+                    let t = (phase / cycle + Double(p) / 3 + Double(rng.next())).truncatingRemainder(dividingBy: 1)
+                    let py = chimneyTop - CGFloat(t) * rect.height * 0.5
+                    let px = chimneyX + CGFloat(sin(phase * 0.8 + Double(p) * 2)) * rect.width * 0.05 + CGFloat(t) * rect.width * 0.08
+                    let r = rect.width * (0.02 + CGFloat(t) * 0.05)
+                    ctx.fill(Path(ellipseIn: CGRect(x: px - r, y: py - r, width: r * 2, height: r * 2)), with: .color(Color.white.opacity(0.18 * (1 - t) * night)))
+                }
+            }
+        }
+    }
+}

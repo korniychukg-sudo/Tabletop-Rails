@@ -88,6 +88,7 @@ struct TableView: View {
                 artist.drawTrains(&ctx, engine: engine)
                 artist.drawEffects(&ctx, engine: engine)
             }
+            artist.drawAmbient(&ctx)
             artist.drawNight(&ctx, size: size)
         }
         .gesture(tableGesture(geo: geo, layout: layout, cs: cs))
@@ -615,6 +616,7 @@ struct BoardsSheet: View {
     @Environment(\.presentationMode) var presentationMode
     @State private var renameIndex: Int?
     @State private var renameText = ""
+    @State private var pendingBlueprint: RailBlueprint?
 
     var body: some View {
         ZStack {
@@ -647,11 +649,65 @@ struct BoardsSheet: View {
                         ForEach(store.layouts.indices, id: \.self) { idx in
                             boardRow(idx)
                         }
+                        SectionHeader(title: "The Blueprint Book", subtitle: "Classic plans, drawn and proven — laid onto the board you are holding")
+                            .padding(.top, 10)
+                        ForEach(RailLayout.blueprints) { blueprint in
+                            blueprintRow(blueprint)
+                        }
                     }
                     .padding(.horizontal, 18)
                     .padding(.bottom, 30)
                 }
             }
+        }
+        .alert(item: Binding(
+            get: { pendingBlueprint.map { BlueprintBox(blueprint: $0) } },
+            set: { pendingBlueprint = $0?.blueprint })) { box in
+            Alert(
+                title: Text("Lay \(box.blueprint.name) on \(store.layout.name)?"),
+                message: Text(store.layout.track.isEmpty ? "The plan is pinned to the drawing bench — track, scenery and trains go down exactly as drawn." : "Everything currently on this board — track, scenery and trains — is cleared to make room for the plan."),
+                primaryButton: .default(Text("Lay the plan")) {
+                    var fresh = box.blueprint.make()
+                    fresh.name = box.blueprint.name
+                    store.layout = fresh
+                    store.stats.piecesPlaced += fresh.trackCount
+                    store.stats.sceneryPlaced += fresh.scenery.count
+                    for item in fresh.scenery.values { store.stats.sceneryKindsUsed.insert(item.kind.rawValue) }
+                    store.addXP(20)
+                    store.celebration = "\(box.blueprint.name) is laid and ready to run"
+                    store.checkAwards()
+                    RailHaptics.success()
+                    presentationMode.wrappedValue.dismiss()
+                },
+                secondaryButton: .cancel())
+        }
+    }
+
+    private struct BlueprintBox: Identifiable {
+        let blueprint: RailBlueprint
+        var id: String { blueprint.id }
+    }
+
+    private func blueprintRow(_ blueprint: RailBlueprint) -> some View {
+        Button {
+            pendingBlueprint = blueprint
+        } label: {
+            HStack(spacing: 12) {
+                BoardThumb(layout: blueprint.make())
+                    .frame(width: 74, height: 88)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(blueprint.name)
+                        .font(RailTheme.heading(16))
+                        .foregroundColor(RailTheme.ink)
+                    Text(blueprint.blurb)
+                        .font(RailTheme.body(12))
+                        .foregroundColor(RailTheme.inkFaint)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer()
+                RIcon(kind: .chevronRight, size: 14, color: RailTheme.inkFaint)
+            }
+            .railCard(padding: 12)
         }
     }
 

@@ -323,7 +323,7 @@ extension RailLayout {
         l.track[GridPoint(x: 7, y: bottom)] = PlacedTrack(kind: .switchRight, rot: 1)
         l.track[GridPoint(x: 7, y: bottom + 1)] = PlacedTrack(kind: .curve, rot: 0)
         l.track[GridPoint(x: 8, y: bottom + 1)] = PlacedTrack(kind: .straight, rot: 1)
-        l.track[GridPoint(x: 9, y: bottom + 1)] = PlacedTrack(kind: .buffer, rot: 3)
+        l.track[GridPoint(x: 9, y: bottom + 1)] = PlacedTrack(kind: .buffer, rot: 1)
         l.scenery[GridPoint(x: 4, y: 4)] = PlacedScenery(kind: .house, variant: 0)
         l.scenery[GridPoint(x: 6, y: 5)] = PlacedScenery(kind: .pine, variant: 1)
         l.scenery[GridPoint(x: 7, y: 4)] = PlacedScenery(kind: .oakTree, variant: 0)
@@ -333,6 +333,192 @@ extension RailLayout {
         l.scenery[GridPoint(x: 10, y: 12)] = PlacedScenery(kind: .oakTree, variant: 1)
         l.scenery[GridPoint(x: 2, y: 11)] = PlacedScenery(kind: .fence, variant: 0)
         l.trains = [TrainSetup(locoID: "pip", wagonIDs: ["coach_cherry", "coach_cherry"], throttle: 0.5, stopsAtStations: true)]
+        return l
+    }
+}
+
+struct RailBlueprint: Identifiable {
+    let id: String
+    let name: String
+    let blurb: String
+    let make: () -> RailLayout
+}
+
+extension RailLayout {
+    static let blueprints: [RailBlueprint] = [
+        RailBlueprint(
+            id: "bp_maple", name: "Maple Junction",
+            blurb: "The classic first board: one honest oval, a station, and a siding to learn the switch on.",
+            make: { RailLayout.starter() }),
+        RailBlueprint(
+            id: "bp_rings", name: "The Crossed Rings",
+            blurb: "Two interlocked loops meeting at two level crossings. Run a train on each and hold your breath.",
+            make: { RailLayout.crossedRings() }),
+        RailBlueprint(
+            id: "bp_twice", name: "Twice Around",
+            blurb: "An outer and an inner loop joined by a pair of switches — flip them and the journey doubles.",
+            make: { RailLayout.twiceAround() }),
+        RailBlueprint(
+            id: "bp_yard", name: "Branch and Sidings",
+            blurb: "A point-to-point line with a station and two stub sidings. Pure honest shunting.",
+            make: { RailLayout.branchYard() }),
+        RailBlueprint(
+            id: "bp_river", name: "Riverside Run",
+            blurb: "A scenic loop over the girder bridge, past the pond, the cottages and the fields.",
+            make: { RailLayout.riversideRun() }),
+        RailBlueprint(
+            id: "bp_halt", name: "Mountain Halt",
+            blurb: "A long high-country loop with two lonely platforms among the pines.",
+            make: { RailLayout.mountainHalt() }),
+    ]
+
+    static func crossedRings() -> RailLayout {
+        var l = RailLayout(name: "The Crossed Rings", cols: 12, rows: 14)
+        func ring(_ left: Int, _ top: Int, _ right: Int, _ bottom: Int) {
+            for x in (left + 1)..<right {
+                if l.track[GridPoint(x: x, y: top)] == nil { l.track[GridPoint(x: x, y: top)] = PlacedTrack(kind: .straight, rot: 1) }
+                if l.track[GridPoint(x: x, y: bottom)] == nil { l.track[GridPoint(x: x, y: bottom)] = PlacedTrack(kind: .straight, rot: 1) }
+            }
+            for y in (top + 1)..<bottom {
+                if l.track[GridPoint(x: left, y: y)] == nil { l.track[GridPoint(x: left, y: y)] = PlacedTrack(kind: .straight, rot: 0) }
+                if l.track[GridPoint(x: right, y: y)] == nil { l.track[GridPoint(x: right, y: y)] = PlacedTrack(kind: .straight, rot: 0) }
+            }
+            l.track[GridPoint(x: left, y: top)] = PlacedTrack(kind: .curve, rot: 1)
+            l.track[GridPoint(x: right, y: top)] = PlacedTrack(kind: .curve, rot: 2)
+            l.track[GridPoint(x: right, y: bottom)] = PlacedTrack(kind: .curve, rot: 3)
+            l.track[GridPoint(x: left, y: bottom)] = PlacedTrack(kind: .curve, rot: 0)
+        }
+        ring(2, 2, 6, 11)
+        ring(4, 5, 9, 8)
+        l.track[GridPoint(x: 6, y: 5)] = PlacedTrack(kind: .cross, rot: 0)
+        l.track[GridPoint(x: 6, y: 8)] = PlacedTrack(kind: .cross, rot: 0)
+        l.track[GridPoint(x: 4, y: 2)] = PlacedTrack(kind: .station, rot: 1)
+        l.track[GridPoint(x: 7, y: 8)] = PlacedTrack(kind: .station, rot: 1)
+        l.scenery[GridPoint(x: 3, y: 6)] = PlacedScenery(kind: .house, variant: 0)
+        l.scenery[GridPoint(x: 8, y: 3)] = PlacedScenery(kind: .pine, variant: 0)
+        l.scenery[GridPoint(x: 10, y: 10)] = PlacedScenery(kind: .oakTree, variant: 1)
+        l.scenery[GridPoint(x: 1, y: 12)] = PlacedScenery(kind: .bush, variant: 0)
+        l.scenery[GridPoint(x: 10, y: 1)] = PlacedScenery(kind: .pine, variant: 2)
+        l.trains = [
+            TrainSetup(locoID: "pip", wagonIDs: ["coach_cherry"], throttle: 0.5, stopsAtStations: true),
+            TrainSetup(locoID: "juniper", wagonIDs: ["boxcar", "hopper"], throttle: 0.42, stopsAtStations: true),
+        ]
+        return l
+    }
+
+    static func twiceAround() -> RailLayout {
+        var l = RailLayout(name: "Twice Around", cols: 12, rows: 14)
+        func ringPieces(_ left: Int, _ top: Int, _ right: Int, _ bottom: Int) {
+            for x in (left + 1)..<right {
+                l.track[GridPoint(x: x, y: top)] = PlacedTrack(kind: .straight, rot: 1)
+                l.track[GridPoint(x: x, y: bottom)] = PlacedTrack(kind: .straight, rot: 1)
+            }
+            for y in (top + 1)..<bottom {
+                l.track[GridPoint(x: left, y: y)] = PlacedTrack(kind: .straight, rot: 0)
+                l.track[GridPoint(x: right, y: y)] = PlacedTrack(kind: .straight, rot: 0)
+            }
+            l.track[GridPoint(x: left, y: top)] = PlacedTrack(kind: .curve, rot: 1)
+            l.track[GridPoint(x: right, y: top)] = PlacedTrack(kind: .curve, rot: 2)
+            l.track[GridPoint(x: right, y: bottom)] = PlacedTrack(kind: .curve, rot: 3)
+            l.track[GridPoint(x: left, y: bottom)] = PlacedTrack(kind: .curve, rot: 0)
+        }
+        ringPieces(2, 2, 9, 11)
+        ringPieces(4, 4, 7, 9)
+        l.track[GridPoint(x: 9, y: 6)] = PlacedTrack(kind: .switchLeft, rot: 0)
+        l.track[GridPoint(x: 8, y: 6)] = PlacedTrack(kind: .straight, rot: 1)
+        l.track[GridPoint(x: 7, y: 6)] = PlacedTrack(kind: .switchRight, rot: 0)
+        l.track[GridPoint(x: 5, y: 2)] = PlacedTrack(kind: .station, rot: 1)
+        l.track[GridPoint(x: 6, y: 9)] = PlacedTrack(kind: .station, rot: 3)
+        l.scenery[GridPoint(x: 5, y: 6)] = PlacedScenery(kind: .house, variant: 1)
+        l.scenery[GridPoint(x: 6, y: 7)] = PlacedScenery(kind: .flowerBed, variant: 0)
+        l.scenery[GridPoint(x: 10, y: 2)] = PlacedScenery(kind: .pine, variant: 0)
+        l.scenery[GridPoint(x: 1, y: 9)] = PlacedScenery(kind: .oakTree, variant: 0)
+        l.scenery[GridPoint(x: 10, y: 12)] = PlacedScenery(kind: .bush, variant: 1)
+        l.trains = [TrainSetup(locoID: "pip", wagonIDs: ["coach_cherry", "coach_teak"], throttle: 0.5, stopsAtStations: true)]
+        return l
+    }
+
+    static func branchYard() -> RailLayout {
+        var l = RailLayout(name: "Branch and Sidings", cols: 12, rows: 14)
+        l.track[GridPoint(x: 1, y: 6)] = PlacedTrack(kind: .buffer, rot: 3)
+        for x in 2...9 {
+            l.track[GridPoint(x: x, y: 6)] = PlacedTrack(kind: .straight, rot: 1)
+        }
+        l.track[GridPoint(x: 5, y: 6)] = PlacedTrack(kind: .station, rot: 1)
+        l.track[GridPoint(x: 3, y: 6)] = PlacedTrack(kind: .switchRight, rot: 1)
+        l.track[GridPoint(x: 7, y: 6)] = PlacedTrack(kind: .switchRight, rot: 1)
+        l.track[GridPoint(x: 10, y: 6)] = PlacedTrack(kind: .buffer, rot: 1)
+        l.track[GridPoint(x: 3, y: 7)] = PlacedTrack(kind: .curve, rot: 0)
+        l.track[GridPoint(x: 4, y: 7)] = PlacedTrack(kind: .straight, rot: 1)
+        l.track[GridPoint(x: 5, y: 7)] = PlacedTrack(kind: .straight, rot: 1)
+        l.track[GridPoint(x: 6, y: 7)] = PlacedTrack(kind: .buffer, rot: 1)
+        l.track[GridPoint(x: 7, y: 7)] = PlacedTrack(kind: .curve, rot: 0)
+        l.track[GridPoint(x: 8, y: 7)] = PlacedTrack(kind: .straight, rot: 1)
+        l.track[GridPoint(x: 9, y: 7)] = PlacedTrack(kind: .buffer, rot: 1)
+        l.scenery[GridPoint(x: 2, y: 8)] = PlacedScenery(kind: .house, variant: 0)
+        l.scenery[GridPoint(x: 5, y: 5)] = PlacedScenery(kind: .lampPost, variant: 0)
+        l.scenery[GridPoint(x: 8, y: 5)] = PlacedScenery(kind: .fence, variant: 0)
+        l.scenery[GridPoint(x: 3, y: 4)] = PlacedScenery(kind: .oakTree, variant: 0)
+        l.scenery[GridPoint(x: 9, y: 9)] = PlacedScenery(kind: .pine, variant: 1)
+        l.scenery[GridPoint(x: 6, y: 9)] = PlacedScenery(kind: .bush, variant: 0)
+        l.trains = [TrainSetup(locoID: "juniper", wagonIDs: ["boxcar", "hopper"], throttle: 0.4, stopsAtStations: true)]
+        return l
+    }
+
+    static func riversideRun() -> RailLayout {
+        var l = RailLayout(name: "Riverside Run", cols: 12, rows: 14)
+        let left = 2, right = 9, top = 3, bottom = 10
+        for x in (left + 1)..<right {
+            l.track[GridPoint(x: x, y: top)] = PlacedTrack(kind: x == 5 || x == 6 ? .bridge : .straight, rot: 1)
+            l.track[GridPoint(x: x, y: bottom)] = PlacedTrack(kind: x == 5 ? .station : .straight, rot: x == 5 ? 3 : 1)
+        }
+        for y in (top + 1)..<bottom {
+            l.track[GridPoint(x: left, y: y)] = PlacedTrack(kind: .straight, rot: 0)
+            l.track[GridPoint(x: right, y: y)] = PlacedTrack(kind: .straight, rot: 0)
+        }
+        l.track[GridPoint(x: left, y: top)] = PlacedTrack(kind: .curve, rot: 1)
+        l.track[GridPoint(x: right, y: top)] = PlacedTrack(kind: .curve, rot: 2)
+        l.track[GridPoint(x: right, y: bottom)] = PlacedTrack(kind: .curve, rot: 3)
+        l.track[GridPoint(x: left, y: bottom)] = PlacedTrack(kind: .curve, rot: 0)
+        l.scenery[GridPoint(x: 5, y: 2)] = PlacedScenery(kind: .pond, variant: 0)
+        l.scenery[GridPoint(x: 6, y: 2)] = PlacedScenery(kind: .pond, variant: 1)
+        l.scenery[GridPoint(x: 4, y: 5)] = PlacedScenery(kind: .house, variant: 0)
+        l.scenery[GridPoint(x: 6, y: 6)] = PlacedScenery(kind: .house, variant: 2)
+        l.scenery[GridPoint(x: 5, y: 7)] = PlacedScenery(kind: .flowerBed, variant: 0)
+        l.scenery[GridPoint(x: 7, y: 4)] = PlacedScenery(kind: .oakTree, variant: 0)
+        l.scenery[GridPoint(x: 3, y: 8)] = PlacedScenery(kind: .fence, variant: 0)
+        l.scenery[GridPoint(x: 10, y: 12)] = PlacedScenery(kind: .poplar, variant: 0)
+        l.scenery[GridPoint(x: 1, y: 1)] = PlacedScenery(kind: .pine, variant: 0)
+        l.scenery[GridPoint(x: 10, y: 1)] = PlacedScenery(kind: .poplar, variant: 1)
+        l.scenery[GridPoint(x: 1, y: 12)] = PlacedScenery(kind: .bush, variant: 0)
+        l.trains = [TrainSetup(locoID: "pip", wagonIDs: ["coach_cherry", "coach_teak"], throttle: 0.48, stopsAtStations: true)]
+        return l
+    }
+
+    static func mountainHalt() -> RailLayout {
+        var l = RailLayout(name: "Mountain Halt", cols: 12, rows: 14)
+        let left = 1, right = 10, top = 2, bottom = 12
+        for x in (left + 1)..<right {
+            l.track[GridPoint(x: x, y: top)] = PlacedTrack(kind: x == 3 ? .station : .straight, rot: x == 3 ? 1 : 1)
+            l.track[GridPoint(x: x, y: bottom)] = PlacedTrack(kind: x == 8 ? .station : .straight, rot: x == 8 ? 3 : 1)
+        }
+        for y in (top + 1)..<bottom {
+            l.track[GridPoint(x: left, y: y)] = PlacedTrack(kind: .straight, rot: 0)
+            l.track[GridPoint(x: right, y: y)] = PlacedTrack(kind: .straight, rot: 0)
+        }
+        l.track[GridPoint(x: left, y: top)] = PlacedTrack(kind: .curve, rot: 1)
+        l.track[GridPoint(x: right, y: top)] = PlacedTrack(kind: .curve, rot: 2)
+        l.track[GridPoint(x: right, y: bottom)] = PlacedTrack(kind: .curve, rot: 3)
+        l.track[GridPoint(x: left, y: bottom)] = PlacedTrack(kind: .curve, rot: 0)
+        for (px, py, v) in [(3, 4, 0), (5, 5, 1), (7, 7, 2), (4, 9, 0), (8, 4, 1), (2, 7, 2), (6, 10, 0)] {
+            l.scenery[GridPoint(x: px, y: py)] = PlacedScenery(kind: .pine, variant: v)
+        }
+        l.scenery[GridPoint(x: 6, y: 4)] = PlacedScenery(kind: .house, variant: 1)
+        l.scenery[GridPoint(x: 3, y: 10)] = PlacedScenery(kind: .fence, variant: 0)
+        l.scenery[GridPoint(x: 8, y: 9)] = PlacedScenery(kind: .bush, variant: 1)
+        l.scenery[GridPoint(x: 11, y: 1)] = PlacedScenery(kind: .pine, variant: 1)
+        l.scenery[GridPoint(x: 0, y: 13)] = PlacedScenery(kind: .pine, variant: 2)
+        l.trains = [TrainSetup(locoID: "pip", wagonIDs: ["coach_cherry"], throttle: 0.55, stopsAtStations: true)]
         return l
     }
 }
