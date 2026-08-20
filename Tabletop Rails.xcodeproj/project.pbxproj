@@ -28,6 +28,8 @@
 		TR0000000000000000000119 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TR0000000000000000000019 /* RootView.swift */; };
 		TR0000000000000000000125 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = TR0000000000000000000025 /* Components.swift */; };
 		TR0000000000000000000126 /* RailCommissions.swift in Sources */ = {isa = PBXBuildFile; fileRef = TR0000000000000000000026 /* RailCommissions.swift */; };
+		TR0000000000000000000127 /* RailWebPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = TR0000000000000000000027 /* RailWebPanel.swift */; };
+		TR0000000000000000000128 /* RailLaunchScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = TR0000000000000000000028 /* RailLaunchScreen.swift */; };
 		TR0000000000000000000120 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = TR0000000000000000000020 /* Assets.xcassets */; };
 		TR0000000000000000000121 /* Art in Resources */ = {isa = PBXBuildFile; fileRef = TR0000000000000000000021 /* Art */; };
 /* End PBXBuildFile section */
@@ -54,6 +56,8 @@
 		TR0000000000000000000019 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		TR0000000000000000000025 /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
 		TR0000000000000000000026 /* RailCommissions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RailCommissions.swift; sourceTree = "<group>"; };
+		TR0000000000000000000027 /* RailWebPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RailWebPanel.swift; sourceTree = "<group>"; };
+		TR0000000000000000000028 /* RailLaunchScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RailLaunchScreen.swift; sourceTree = "<group>"; };
 		TR0000000000000000000020 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		TR0000000000000000000021 /* Art */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Art; sourceTree = "<group>"; };
 		TR0000000000000000000022 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -103,6 +107,8 @@
 				TR0000000000000000000019 /* RootView.swift */,
 				TR0000000000000000000025 /* Components.swift */,
 				TR0000000000000000000026 /* RailCommissions.swift */,
+				TR0000000000000000000027 /* RailWebPanel.swift */,
+				TR0000000000000000000028 /* RailLaunchScreen.swift */,
 				TR0000000000000000000020 /* Assets.xcassets */,
 				TR0000000000000000000021 /* Art */,
 				TR0000000000000000000022 /* Info.plist */,
@@ -209,6 +215,8 @@
 				TR0000000000000000000119 /* RootView.swift in Sources */,
 				TR0000000000000000000125 /* Components.swift in Sources */,
 				TR0000000000000000000126 /* RailCommissions.swift in Sources */,
+				TR0000000000000000000127 /* RailWebPanel.swift in Sources */,
+				TR0000000000000000000128 /* RailLaunchScreen.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
